@@ -1355,10 +1355,10 @@
     "@typescript-eslint/types" "5.58.0"
     eslint-visitor-keys "^3.3.0"
 
-"@vvtri/nestjs-kafka@1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@vvtri/nestjs-kafka/-/nestjs-kafka-1.1.4.tgz#b5a910b3e0bd2f5388553a55e2a117427856d599"
-  integrity sha512-BGpnJ/NNYOZEtNUq4pWrVVptufWrKXZ6+zMuPeyfQRrotrFouEJKc3PvbhaaWObbipC/Ib+MpWhIGzMxwkPqrA==
+"@vvtri/nestjs-kafka@1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@vvtri/nestjs-kafka/-/nestjs-kafka-1.1.5.tgz#4b1967770019bddef9e018c30e4aec2fa8284e20"
+  integrity sha512-g3PzsKpgFzXmy53l4wLItvV2ybZ2JVuB2B7YwDAQgug9KFOnFUA85A7RdgRnz+McxAecKc6ucjvzCyW/d044kw==
   dependencies:
     "@kafkajs/confluent-schema-registry" "3.3.0"
     kafkajs "2.2.0"
@@ -2885,7 +2885,7 @@ commander@^2.20.0:
 
 "common@git+https://github.com/vvtri/sim-fri-common.git#develop":
   version "1.0.0"
-  resolved "git+https://github.com/vvtri/sim-fri-common.git#c385ef376d4106a881489dbdf7f8429acd4df8b9"
+  resolved "git+https://github.com/vvtri/sim-fri-common.git#38e341b3e4dc4b8f35f763418c733aef6c220f1f"
 
 component-emitter@^1.3.0:
   version "1.3.0"
@@ -5850,7 +5850,7 @@ sha.js@^2.4.11:
 
 "shared@git+https://github.com/vvtri/sim-fri-shared.git#develop":
   version "1.0.0"
-  resolved "git+https://github.com/vvtri/sim-fri-shared.git#3fceaefbdfaf849973f5e6cd390ce1d27aafcfa5"
+  resolved "git+https://github.com/vvtri/sim-fri-shared.git#dee780a88e6f0f62680eb0ae3bf8bd24029f0b19"
 
 shebang-command@^1.2.0:
   version "1.2.0"

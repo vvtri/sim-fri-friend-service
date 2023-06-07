@@ -2,6 +2,7 @@ import { BaseEntity } from 'common';
 import { UserStatus } from 'shared';
 import { Column, Entity, OneToMany, OneToOne, PrimaryColumn } from 'typeorm';
 import { File } from '../../file/entities/file.entity';
+import { FriendRequest } from '../../friend/entities/friend-request.entity';
 import { UserProfile } from './user-profile.entity';
 
 @Entity()
@@ -23,4 +24,10 @@ export class User extends BaseEntity {
 
   @OneToOne(() => UserProfile, (up) => up.user)
   userProfile: UserProfile;
+
+  @OneToMany(() => FriendRequest, (f) => f.requester)
+  friendRequesters: FriendRequest[];
+
+  @OneToMany(() => FriendRequest, (f) => f.beRequested)
+  friendBeRequesteds: FriendRequest[];
 }
