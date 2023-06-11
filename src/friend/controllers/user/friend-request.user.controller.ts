@@ -15,8 +15,11 @@ import {
   AuthenticateUser,
   CurrentUser,
 } from '../../../common/decorators/auth.decorator';
+import { PaginationResponse } from '../../../common/decorators/swagger.decorator';
+import { FriendRequestResDto } from '../../dtos/common/friend/res/friend-request.res.dto';
 import {
   GetListFriendRequestUserReqDto,
+  GetListFriendSuggestionUserReqDto,
   ReplyFriendRequestUserReqDto,
 } from '../../dtos/user/req/friend-request.user.req.dto';
 import { FriendRequestUserService } from '../../services/user/friend-request.user.service';
@@ -35,7 +38,25 @@ export class FriendRequestUserController {
     return this.friendRequestUserService.countFriend(userId, user);
   }
 
+  @Get(':userId/is-friend')
+  isFriend(
+    @Param('userId', ParseIntPipe) userId: number,
+    @CurrentUser() user: User,
+  ) {
+    return this.friendRequestUserService.isFriend(userId, user);
+  }
+
+  @Get('suggestion')
+  @PaginationResponse(FriendRequestResDto)
+  getListSuggestion(
+    @Query() query: GetListFriendSuggestionUserReqDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.friendRequestUserService.getFriendSuggestion(query, user);
+  }
+
   @Get()
+  @PaginationResponse(FriendRequestResDto)
   getList(
     @Query() query: GetListFriendRequestUserReqDto,
     @CurrentUser() user: User,
@@ -43,9 +64,17 @@ export class FriendRequestUserController {
     return this.friendRequestUserService.getList(query, user);
   }
 
+  @Get(':userId')
+  getFriend(
+    @Param('userId', ParseIntPipe) userId: number,
+    @CurrentUser() user: User,
+  ) {
+    return this.friendRequestUserService.getFriend(userId, user);
+  }
+
   @Post('add/:userId')
   addFriend(
-    @Query('userId', ParseIntPipe) userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @CurrentUser() user: User,
   ) {
     return this.friendRequestUserService.addFriend(userId, user);
@@ -60,10 +89,10 @@ export class FriendRequestUserController {
   }
 
   @Delete(':userId')
-  unFriend(
-    @Query('userId', ParseIntPipe) userId: number,
+  delete(
+    @Param('userId', ParseIntPipe) userId: number,
     @CurrentUser() user: User,
   ) {
-    return this.friendRequestUserService.unFriend(userId, user);
+    return this.friendRequestUserService.delete(userId, user);
   }
 }

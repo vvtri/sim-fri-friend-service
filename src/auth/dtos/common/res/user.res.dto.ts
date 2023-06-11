@@ -3,6 +3,7 @@ import { UserProfileResDto } from './user-profile.res.dto';
 
 export interface UserResDtoParams {
   data?: User;
+  mutualFriends?: User[];
 }
 
 export class UserResDto {
@@ -11,6 +12,7 @@ export class UserResDto {
   email: string;
   createdAt: Date;
   profile: UserProfileResDto;
+  mutualFriends: UserResDto[];
 
   static mapProperty(dto: UserResDto, { data }: UserResDtoParams) {
     dto.id = data.id;
@@ -20,7 +22,7 @@ export class UserResDto {
   }
 
   static forUser(params: UserResDtoParams) {
-    const { data } = params;
+    const { data, mutualFriends } = params;
 
     if (!data) return null;
     const result = new UserResDto();
@@ -28,6 +30,9 @@ export class UserResDto {
     this.mapProperty(result, params);
 
     result.profile = UserProfileResDto.forUser({ data: data.userProfile });
+    result.mutualFriends = mutualFriends?.map((item) =>
+      UserResDto.forUser({ data: item }),
+    );
 
     return result;
   }

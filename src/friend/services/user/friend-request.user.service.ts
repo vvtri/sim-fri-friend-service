@@ -10,13 +10,15 @@ import {
 import { paginate } from 'nestjs-typeorm-paginate';
 import { Pagination } from 'nestjs-typeorm-paginate/dist/pagination';
 import { FriendRequestStatus } from 'shared';
-import { Brackets } from 'typeorm';
+import { Brackets, In, SelectQueryBuilder } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
+import { UserResDto } from '../../../auth/dtos/common/res/user.res.dto';
 import { User } from '../../../auth/entities/user.entity';
 import { UserRepository } from '../../../auth/repositories/user.repository';
 import { FriendRequestResDto } from '../../dtos/common/friend/res/friend-request.res.dto';
 import {
   GetListFriendRequestUserReqDto,
+  GetListFriendSuggestionUserReqDto,
   ReplyFriendRequestAction,
   ReplyFriendRequestUserReqDto,
 } from '../../dtos/user/req/friend-request.user.req.dto';
@@ -68,6 +70,9 @@ export class FriendRequestUserService {
 
     if (status) {
       qb.andWhere('f.status = :status', { status });
+      if (status === FriendRequestStatus.PENDING) {
+        qb.andWhere('f.beRequestedId = :userId', { userId });
+      }
     }
 
     const { items, meta } = await paginate(qb, { page, limit });
@@ -90,11 +95,156 @@ export class FriendRequestUserService {
           item.requester = friendUser;
         }
 
-        return FriendRequestResDto.forUser({ data: item });
+        let mutualFriends: User[] = [];
+        let isFriend = true;
+
+        if (friendUser.id !== user.id) {
+          const mutualFriendIds =
+            await this.friendRequestRepo.getMutualFriendIds(
+              friendUser.id,
+              user.id,
+            );
+          isFriend = await this.friendRequestRepo.isFriend(
+            friendUser.id,
+            user.id,
+          );
+
+          mutualFriends = await this.userRepo.find({
+            where: { id: In(mutualFriendIds) },
+            relations: { userProfile: { avatar: true } },
+          });
+        }
+
+        return FriendRequestResDto.forUser({
+          data: item,
+          isFriend,
+          mutualFriends,
+        });
       }),
     );
 
     return new Pagination(result, meta);
+  }
+
+  @Transactional()
+  async getFriendSuggestion(
+    dto: GetListFriendSuggestionUserReqDto,
+    user: User,
+  ) {
+    const { limit, page } = dto;
+    let qb: SelectQueryBuilder<User>;
+
+    const friends = await this.friendRequestRepo.find({
+      where: [{ requesterId: user.id }, { beRequestedId: user.id }],
+    });
+
+    const friendIds: number[] = [];
+    for (const friend of friends) {
+      if (friend.beRequestedId === user.id) friendIds.push(friend.requesterId);
+      else friendIds.push(friend.beRequestedId);
+    }
+
+    if (friendIds.length) {
+      const friendOfFriends = await this.friendRequestRepo
+        .createQueryBuilder('fr')
+        .where(
+          new Brackets((qb2) => {
+            qb2
+              .where('fr.beRequestedId IN (:...friendIds)')
+              .orWhere('fr.requesterId IN (:...friendIds)', { friendIds });
+          }),
+        )
+        .andWhere('fr.beRequestedId != :userId', { userId: user.id })
+        .andWhere('fr.requesterId != :userId', { userId: user.id })
+        .getMany();
+      console.log('friendIds', friendIds);
+      console.log('friendOfFriends', friendOfFriends);
+
+      const friendOfFriendsUserIds: Set<number> = new Set();
+
+      for (const friendOfFriend of friendOfFriends) {
+        const isRequesterAlreadyFriend = friendIds.includes(
+          friendOfFriend.requesterId,
+        );
+        const isBeRequestedAlreadyFriend = friendIds.includes(
+          friendOfFriend.beRequestedId,
+        );
+
+        if (!isRequesterAlreadyFriend)
+          friendOfFriendsUserIds.add(friendOfFriend.requesterId);
+        if (!isBeRequestedAlreadyFriend)
+          friendOfFriendsUserIds.add(friendOfFriend.beRequestedId);
+      }
+
+      friendOfFriendsUserIds.delete(user.id); //remove myself
+      if (friendOfFriendsUserIds.size) {
+        qb = this.userRepo
+          .createQueryBuilder('u')
+          .where('u.id IN (:...userIds)', {
+            userIds: Array.from(friendOfFriendsUserIds),
+          });
+      }
+    }
+
+    if (!qb) {
+      friendIds.push(user.id);
+      qb = this.userRepo
+        .createQueryBuilder('u')
+        .andWhere('u.id NOT IN (:...friendIds)', { friendIds });
+    }
+
+    qb.innerJoinAndSelect('u.userProfile', 'up')
+      .leftJoinAndSelect('up.avatar', 'a')
+      .orderBy('u.id', 'DESC');
+
+    const { items, meta } = await paginate(qb, { limit, page });
+
+    const result = await Promise.all(
+      items.map(async (item) => {
+        const mutualFriendIds = await this.friendRequestRepo.getMutualFriendIds(
+          item.id,
+          user.id,
+        );
+        const mutualFriends = await this.userRepo.find({
+          where: { id: In(mutualFriendIds) },
+          relations: { userProfile: { avatar: true } },
+        });
+
+        return UserResDto.forUser({ data: item, mutualFriends });
+      }),
+    );
+
+    return new Pagination(result, meta);
+  }
+
+  @Transactional()
+  async isFriend(userId: number, user: User) {
+    const exist = await this.friendRequestRepo.exist({
+      where: [
+        {
+          beRequestedId: user.id,
+          requesterId: userId,
+          status: FriendRequestStatus.ACCEPTED,
+        },
+        {
+          beRequestedId: userId,
+          requesterId: user.id,
+          status: FriendRequestStatus.ACCEPTED,
+        },
+      ],
+    });
+
+    return exist;
+  }
+
+  @Transactional()
+  async getFriend(userId: number, user: User) {
+    const friendRequest = await this.friendRequestRepo.findOneBy([
+      { beRequestedId: user.id, requesterId: userId },
+      { beRequestedId: userId, requesterId: user.id },
+    ]);
+
+    return friendRequest;
   }
 
   @Transactional()
@@ -124,6 +274,8 @@ export class FriendRequestUserService {
     await this.friendRequestRepo.save(friendRequest);
 
     await this.sendFriendRequestCreatedKafka(friendRequest);
+
+    return FriendRequestResDto.forUser({ data: friendRequest });
   }
 
   @Transactional()
@@ -156,16 +308,13 @@ export class FriendRequestUserService {
   }
 
   @Transactional()
-  async unFriend(userId: number, user: User) {
+  async delete(userId: number, user: User) {
     const friendRequest = await this.friendRequestRepo.findOneBy([
       { requesterId: userId, beRequestedId: user.id },
       { beRequestedId: userId, requesterId: user.id },
     ]);
 
     if (!friendRequest) throw new ExpectationFailedExc({ statusCode: 1000 });
-
-    if (friendRequest.status !== FriendRequestStatus.ACCEPTED)
-      throw new ExpectationFailedExc({ statusCode: 1000 });
 
     await this.friendRequestRepo.softDelete(friendRequest.id);
 

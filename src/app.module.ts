@@ -45,7 +45,7 @@ import { FriendModule } from './friend/firend.module';
   providers: [
     AppService,
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
-    { provide: APP_PIPE, useValue: new ValidationPipe() },
+    { provide: APP_PIPE, useValue: new ValidationPipe({ transform: true }) },
   ],
 })
 export class AppModule {

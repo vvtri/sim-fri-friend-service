@@ -18,6 +18,8 @@ export class GetListFriendRequestUserReqDto extends PaginationReqDto {
   status?: FriendRequestStatus;
 }
 
+export class GetListFriendSuggestionUserReqDto extends PaginationReqDto {}
+
 export class ReplyFriendRequestUserReqDto {
   @IsValidNumber({ min: 1 })
   friendRequestId: number;
