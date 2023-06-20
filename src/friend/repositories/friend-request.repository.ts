@@ -129,4 +129,18 @@ export class FriendRequestRepository extends BaseRepository<FriendRequest> {
 
     return mutualFriendIds;
   }
+
+  async getFriendIds(userId: number) {
+    const friends = await this.find({
+      where: [{ requesterId: userId }, { beRequestedId: userId }],
+    });
+
+    const friendIds: Set<number> = new Set();
+    for (const friend of friends) {
+      if (friend.beRequestedId === userId) friendIds.add(friend.requesterId);
+      else friendIds.add(friend.beRequestedId);
+    }
+
+    return Array.from(friendIds);
+  }
 }

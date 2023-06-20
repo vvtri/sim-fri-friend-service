@@ -157,8 +157,6 @@ export class FriendRequestUserService {
         .andWhere('fr.beRequestedId != :userId', { userId: user.id })
         .andWhere('fr.requesterId != :userId', { userId: user.id })
         .getMany();
-      console.log('friendIds', friendIds);
-      console.log('friendOfFriends', friendOfFriends);
 
       const friendOfFriendsUserIds: Set<number> = new Set();
 
@@ -195,7 +193,7 @@ export class FriendRequestUserService {
 
     qb.innerJoinAndSelect('u.userProfile', 'up')
       .leftJoinAndSelect('up.avatar', 'a')
-      .orderBy('u.id', 'DESC');
+      .addOrderBy('u.id', 'DESC');
 
     const { items, meta } = await paginate(qb, { limit, page });
 
@@ -264,16 +262,23 @@ export class FriendRequestUserService {
       { beRequestedId: userId, requesterId: user.id },
     ]);
 
-    if (friendRequest) throw new ExpectationFailedExc({ statusCode: 1000 });
+    if (friendRequest) {
+      if (friendRequest.beRequestedId === user.id) {
+        friendRequest.status = FriendRequestStatus.ACCEPTED;
+        await this.friendRequestRepo.save(friendRequest);
+      } else {
+        throw new ExpectationFailedExc({ statusCode: 1000 });
+      }
+    } else {
+      friendRequest = this.friendRequestRepo.create({
+        requesterId: user.id,
+        beRequestedId: userId,
+        status: FriendRequestStatus.PENDING,
+      });
+      await this.friendRequestRepo.save(friendRequest);
 
-    friendRequest = this.friendRequestRepo.create({
-      requesterId: user.id,
-      beRequestedId: userId,
-      status: FriendRequestStatus.PENDING,
-    });
-    await this.friendRequestRepo.save(friendRequest);
-
-    await this.sendFriendRequestCreatedKafka(friendRequest);
+      await this.sendFriendRequestCreatedKafka(friendRequest);
+    }
 
     return FriendRequestResDto.forUser({ data: friendRequest });
   }
@@ -330,9 +335,7 @@ export class FriendRequestUserService {
     });
     await this.kafkaProducer.send<FriendRequestCreatedKafkaPayload>({
       topic: KAFKA_TOPIC.FRIEND_REQUEST_CREATED,
-      messages: [
-        { value: kafkaPayload, headers: { id: String(friendRequest.id) } },
-      ],
+      messages: [{ value: kafkaPayload, key: String(friendRequest.id) }],
     });
   }
 
@@ -345,9 +348,7 @@ export class FriendRequestUserService {
     });
     await this.kafkaProducer.send<FriendRequestUpdatedKafkaPayload>({
       topic: KAFKA_TOPIC.FRIEND_REQUEST_UPDATED,
-      messages: [
-        { value: kafkaPayload, headers: { id: String(friendRequest.id) } },
-      ],
+      messages: [{ value: kafkaPayload, key: String(friendRequest.id) }],
     });
   }
 
@@ -356,9 +357,7 @@ export class FriendRequestUserService {
     kafkaPayload.friendRequestId = friendRequest.id;
     await this.kafkaProducer.send<FriendRequestDeletedKafkaPayload>({
       topic: KAFKA_TOPIC.FRIEND_REQUEST_DELETED,
-      messages: [
-        { value: kafkaPayload, headers: { id: String(friendRequest.id) } },
-      ],
+      messages: [{ value: kafkaPayload, key: String(friendRequest.id) }],
     });
   }
 }

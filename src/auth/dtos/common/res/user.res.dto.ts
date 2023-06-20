@@ -1,9 +1,12 @@
+import { FriendRequestResDto } from '../../../../friend/dtos/common/friend/res/friend-request.res.dto';
+import { FriendRequest } from '../../../../friend/entities/friend-request.entity';
 import { User } from '../../../entities/user.entity';
 import { UserProfileResDto } from './user-profile.res.dto';
 
 export interface UserResDtoParams {
   data?: User;
   mutualFriends?: User[];
+  friendRequest?: FriendRequest;
 }
 
 export class UserResDto {
@@ -13,6 +16,7 @@ export class UserResDto {
   createdAt: Date;
   profile: UserProfileResDto;
   mutualFriends: UserResDto[];
+  friendRequest: FriendRequestResDto;
 
   static mapProperty(dto: UserResDto, { data }: UserResDtoParams) {
     dto.id = data.id;
@@ -22,7 +26,7 @@ export class UserResDto {
   }
 
   static forUser(params: UserResDtoParams) {
-    const { data, mutualFriends } = params;
+    const { data, mutualFriends, friendRequest } = params;
 
     if (!data) return null;
     const result = new UserResDto();
@@ -33,6 +37,7 @@ export class UserResDto {
     result.mutualFriends = mutualFriends?.map((item) =>
       UserResDto.forUser({ data: item }),
     );
+    result.friendRequest = FriendRequestResDto.forUser({ data: friendRequest });
 
     return result;
   }

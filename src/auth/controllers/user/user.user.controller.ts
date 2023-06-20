@@ -7,16 +7,16 @@ import {
 } from '../../../common/decorators/auth.decorator';
 import { SearchProfileUserReqDto } from '../../dtos/user/req/user-profile.req.dto';
 import { User } from '../../entities/user.entity';
-import { UserProfileUserService } from '../../services/user/user-profile.user.service';
+import { UserUserService } from '../../services/user/user.user.service';
 
-@Controller(`${PrefixType.USER}/user-profile`)
+@Controller(`${PrefixType.USER}/user`)
 @AuthenticateUser()
-@ApiTags('User profile')
-export class UserProfileUserController {
-  constructor(private userProfileUserService: UserProfileUserService) {}
+@ApiTags('User')
+export class UserUserController {
+  constructor(private userUserService: UserUserService) {}
 
   @Get()
   getList(@Query() query: SearchProfileUserReqDto, @CurrentUser() user: User) {
-    return this.userProfileUserService.getList(query, user);
+    return this.userUserService.getList(query, user);
   }
 }

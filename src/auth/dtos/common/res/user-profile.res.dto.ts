@@ -5,6 +5,7 @@ import { UserProfile } from '../../../entities/user-profile.entity';
 
 export interface UserProfileResDtoParams {
   data?: UserProfile;
+  mutualFriendCount?: number;
 }
 
 export class UserProfileResDto {
@@ -18,10 +19,11 @@ export class UserProfileResDto {
   relationshipStatus: UserProfileRelationshipStatus;
   avatar: FileResDto;
   user: UserResDto;
+  mutualFriendCount: number;
 
   static mapProperty(
     dto: UserProfileResDto,
-    { data }: UserProfileResDtoParams,
+    { data, mutualFriendCount }: UserProfileResDtoParams,
   ) {
     dto.id = data.id;
     dto.address = data.address;
@@ -31,6 +33,7 @@ export class UserProfileResDto {
     dto.school = data.school;
     dto.hometown = data.hometown;
     dto.relationshipStatus = data.relationshipStatus;
+    dto.mutualFriendCount = mutualFriendCount;
   }
 
   static forUser(params: UserProfileResDtoParams) {
