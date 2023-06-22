@@ -5,7 +5,7 @@ import {
   AuthenticateUser,
   CurrentUser,
 } from '../../../common/decorators/auth.decorator';
-import { SearchProfileUserReqDto } from '../../dtos/user/req/user-profile.req.dto';
+import { SearchProfileUserReqDto } from '../../dtos/user/req/user..req.dto';
 import { User } from '../../entities/user.entity';
 import { UserUserService } from '../../services/user/user.user.service';
 

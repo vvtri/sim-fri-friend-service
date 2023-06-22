@@ -4,7 +4,7 @@ import { Brackets, In } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { FriendRequestRepository } from '../../../friend/repositories/friend-request.repository';
 import { UserResDto } from '../../dtos/common/res/user.res.dto';
-import { SearchProfileUserReqDto } from '../../dtos/user/req/user-profile.req.dto';
+import { SearchProfileUserReqDto } from '../../dtos/user/req/user..req.dto';
 import { User } from '../../entities/user.entity';
 import { UserProfileRepository } from '../../repositories/user-profile.repository';
 import { UserRepository } from '../../repositories/user.repository';
@@ -19,7 +19,7 @@ export class UserUserService {
 
   @Transactional()
   async getList(dto: SearchProfileUserReqDto, user: User) {
-    const { limit, page } = dto;
+    const { limit, page, excludedIds } = dto;
     let { searchText } = dto;
 
     let friendIds = await this.friendRequestRepo.getFriendIds(user.id);
@@ -46,6 +46,10 @@ export class UserUserService {
             .orWhere('up.hometown ilike :searchText', { searchText });
         }),
       );
+    }
+
+    if (excludedIds?.length) {
+      qb.andWhere('u.id NOT IN (:...excludedIds)', { excludedIds });
     }
 
     if (friendIds.length) {
