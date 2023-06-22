@@ -6,8 +6,9 @@ RUN ssh-keyscan -t rsa github.com > ~/.ssh/known_hosts
 
 WORKDIR /usr/src/app
 COPY package.json ./
-COPY yarn.lock ./
-RUN yarn install --network-concurrency 1 --ignore-scripts
+# COPY yarn.lock ./
+# RUN yarn install --network-concurrency 1 --ignore-scripts
+RUN npm install
 COPY . ./
 RUN yarn build 
 
