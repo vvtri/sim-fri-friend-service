@@ -1,0 +1,25 @@
+name: Deploy Auth Service
+
+on:
+  push:
+    branches: ['dev']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      IMAGE_NAME: vtri/friend-service
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Docker login
+        run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+
+      - name: Build image
+        run: docker build . -t $IMAGE_NAME
+
+      - name: Push to Docker hub
+        run: docker push $IMAGE_NAME
