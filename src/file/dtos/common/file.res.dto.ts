@@ -23,7 +23,7 @@ export class FileResDto {
     dto.size = data.size;
     dto.audienceType = data.audienceType;
     dto.fileType = data.fileType;
-    // dto.url = `https://${data.bucket}.s3.amazonaws.com/${data.key}`;
+    dto.url = `https://${data.bucket}.s3.amazonaws.com/${data.key}`;
   }
 
   static forUser(params: FileResDtoParams) {
