@@ -34,6 +34,7 @@ switch (process.env.NODE_ENV) {
       synchronize: false,
       migrationsRun: true,
       logging: false,
+      ssl: true
     };
     break;
 
