@@ -5850,7 +5850,7 @@ sha.js@^2.4.11:
 
 "shared@git+https://github.com/vvtri/sim-fri-shared.git#develop":
   version "1.0.0"
-  resolved "git+https://github.com/vvtri/sim-fri-shared.git#4d86443526124f8e370f1025855d77c35e09f055"
+  resolved "git+https://github.com/vvtri/sim-fri-shared.git#635c676c9bbd8ae3257a2d3ebb62de2fa72a1d2b"
 
 shebang-command@^1.2.0:
   version "1.2.0"
