@@ -37,4 +37,4 @@ jobs:
 
       # Kubernetes rollout the latest image
       - name: Kubernetes rollout the latest image
-        run: kubectl -n karma-stats rollout restart deployment $DEPLOYMENT_NAME
+        run: kubectl rollout restart deployment $DEPLOYMENT_NAME
