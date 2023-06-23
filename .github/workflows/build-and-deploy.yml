@@ -11,9 +11,20 @@ jobs:
       DOCKER_USER: ${{ secrets.DOCKER_USER }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       IMAGE_NAME: vtri/friend-service
+      DIGITAL_ACCESS_TOKEN: ${{ secrets.DIGITAL_ACCESS_TOKEN }}
+      CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+      DEPLOYMENT_NAME: friend-service
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITAL_ACCESS_TOKEN }}
+
+      - name: Save DigitalOcean kubeconfig Staging
+        run: doctl kubernetes cluster kubeconfig save $CLUSTER_NAME
 
       - name: Docker login
         run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
@@ -23,3 +34,7 @@ jobs:
 
       - name: Push to Docker hub
         run: docker push $IMAGE_NAME
+
+      # Kubernetes rollout the latest image
+      - name: Kubernetes rollout the latest image
+        run: kubectl -n karma-stats rollout restart deployment $DEPLOYMENT_NAME
