@@ -6,5 +6,5 @@ export class SearchProfileUserReqDto extends PaginationReqDto {
   searchText?: string;
 
   @IsValidArrayNumber({ minSize: 0, required: false })
-  excludedIds: number[];
+  excludedIds?: number[];
 }

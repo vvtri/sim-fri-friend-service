@@ -32,7 +32,7 @@ export class UserUserService {
       .groupBy('u.id')
       .select('u.id')
       .where('u.id != :myUserId', { myUserId: user.id })
-      .andWhere(`u.status = ${UserStatus.ACTIVE}`);
+      .andWhere(`u.status = '${UserStatus.ACTIVE}'`);
 
     if (searchText) {
       searchText = `%${searchText}%`;

@@ -191,7 +191,7 @@ export class FriendRequestUserService {
         .andWhere('u.id NOT IN (:...friendIds)', { friendIds });
     }
 
-    qb.andWhere(`u.status = ${UserStatus.ACTIVE}`)
+    qb.andWhere(`u.status = '${UserStatus.ACTIVE}'`)
       .innerJoinAndSelect('u.userProfile', 'up')
       .leftJoinAndSelect('up.avatar', 'a')
       .addOrderBy('u.id', 'DESC');
