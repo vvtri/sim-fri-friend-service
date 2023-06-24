@@ -266,6 +266,7 @@ export class FriendRequestUserService {
       if (friendRequest.beRequestedId === user.id) {
         friendRequest.status = FriendRequestStatus.ACCEPTED;
         await this.friendRequestRepo.save(friendRequest);
+        await this.sendFriendRequestUpdatedKafka(friendRequest);
       } else {
         throw new ExpectationFailedExc({ statusCode: 1000 });
       }
@@ -305,7 +306,7 @@ export class FriendRequestUserService {
         break;
       case ReplyFriendRequestAction.REJECTED:
         await this.friendRequestRepo.softDelete(friendRequest);
-        await this.sendFriendRequestUpdatedKafka(friendRequest);
+        await this.sendFriendRequestDeletedKafka(friendRequest);
         break;
       default:
         throw new ExpectationFailedExc({ statusCode: 1000 });
