@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { UserStatus } from 'shared';
 import { Brackets, In } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { FriendRequestRepository } from '../../../friend/repositories/friend-request.repository';
@@ -30,7 +31,8 @@ export class UserUserService {
       .innerJoinAndSelect('u.userProfile', 'up')
       .groupBy('u.id')
       .select('u.id')
-      .where('u.id != :myUserId', { myUserId: user.id });
+      .where('u.id != :myUserId', { myUserId: user.id })
+      .andWhere(`u.status = ${UserStatus.ACTIVE}`);
 
     if (searchText) {
       searchText = `%${searchText}%`;

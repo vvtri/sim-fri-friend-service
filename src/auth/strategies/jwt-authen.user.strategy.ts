@@ -4,7 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { UnAuthorizedExc } from 'common';
 import dayjs from 'dayjs';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { AuthStatusCode } from 'shared';
+import { AuthStatusCode, UserStatus } from 'shared';
 import { GlobalConfig } from '../../common/configs/global.config';
 import { StrategyName } from '../constants/index.constant';
 import { UserRepository } from '../repositories/user.repository';
@@ -36,7 +36,9 @@ export class JwtAuthenUserStrategy extends PassportStrategy(
       });
     }
 
-    const [user] = await this.userRepo.find({ where: { id: userId } });
+    const [user] = await this.userRepo.find({
+      where: { id: userId, status: UserStatus.ACTIVE },
+    });
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');

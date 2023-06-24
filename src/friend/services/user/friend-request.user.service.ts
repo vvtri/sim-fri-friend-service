@@ -9,7 +9,7 @@ import {
 } from 'common';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { Pagination } from 'nestjs-typeorm-paginate/dist/pagination';
-import { FriendRequestStatus } from 'shared';
+import { FriendRequestStatus, UserStatus } from 'shared';
 import { Brackets, In, SelectQueryBuilder } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { UserResDto } from '../../../auth/dtos/common/res/user.res.dto';
@@ -191,7 +191,8 @@ export class FriendRequestUserService {
         .andWhere('u.id NOT IN (:...friendIds)', { friendIds });
     }
 
-    qb.innerJoinAndSelect('u.userProfile', 'up')
+    qb.andWhere(`u.status = ${UserStatus.ACTIVE}`)
+      .innerJoinAndSelect('u.userProfile', 'up')
       .leftJoinAndSelect('up.avatar', 'a')
       .addOrderBy('u.id', 'DESC');
 
@@ -257,6 +258,11 @@ export class FriendRequestUserService {
 
   @Transactional()
   async addFriend(userId: number, user: User) {
+    await this.userRepo.findOneByOrThrowNotFoundExc({
+      id: userId,
+      status: UserStatus.ACTIVE,
+    });
+
     let friendRequest = await this.friendRequestRepo.findOneBy([
       { requesterId: userId, beRequestedId: user.id },
       { beRequestedId: userId, requesterId: user.id },
